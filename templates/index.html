@@ -33,16 +33,46 @@
       padding: 0;
       box-sizing: border-box;
     }
-
     body {
       font-family: 'Instrument Sans', sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
       display: flex;
-      overflow-y: auto;
+      overflow-x: hidden;
+      position: relative;
     }
 
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at 16% 16%, rgba(20, 200, 191, 0.14), transparent 18%),
+        radial-gradient(circle at 88% 12%, rgba(212, 168, 67, 0.12), transparent 14%),
+        radial-gradient(circle at 50% 96%, rgba(255, 255, 255, 0.04), transparent 20%);
+      z-index: -1;
+    }
+    .goal-box {
+  background: white;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 10px;
+}
+
+.bar {
+  width: 100%;
+  height: 10px;
+  background: #ddd;
+  border-radius: 5px;
+}
+
+.fill {
+  height: 10px;
+  background: green;
+  border-radius: 5px;
+}
+  
     /* ── SIDEBAR ──────────────────────────────────── */
     .sidebar {
       width: 220px;
@@ -140,6 +170,28 @@
       padding: 20px;
     }
 
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      background: linear-gradient(90deg, rgba(20,200,191,0.06), rgba(212,168,67,0.06));
+      z-index: 0;
+      filter: blur(16px);
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      pointer-events: none;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 30px 80px rgba(6,8,12,0.75), inset 0 1px 0 rgba(255,255,255,0.02);
+    }
+
+    .card:hover::before { opacity: 1; }
+
+    /* make card content appear above decorative pseudo element */
+    .card > * { position: relative; z-index: 1; }
+
     .card-title {
       font-family: 'Syne', sans-serif;
       font-size: 13px;
@@ -147,7 +199,7 @@
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--muted);
-      margin-bottom: 12px;
+      margin-bottom: 16px;
     }
 
     /* ── STAT CARDS ───────────────────────────────── */
@@ -215,35 +267,42 @@
     }
 
     /* ── CHAT ─────────────────────────────────────── */
-    .chat-messages {
-      height: 240px;
+        .chat-messages {
+      height: 320px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 10px;
-      padding: 4px 2px;
-      margin-bottom: 14px;
+      padding: 16px;
+      margin-bottom: 18px;
+      background: linear-gradient(135deg, rgba(20,200,191,0.03) 0%, rgba(212,168,67,0.02) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 18px;
       scrollbar-width: thin;
       scrollbar-color: var(--bg3) transparent;
+      flex: 1;
     }
-
-    .msg {
+     
+  .msg {
       max-width: 88%;
-      padding: 10px 14px;
-      border-radius: 10px;
+      padding: 12px 16px;
+      border-radius: 18px;
       font-size: 13px;
-      line-height: 1.5;
+      line-height: 1.6;
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.07);
+      position: relative;
     }
-
-    .msg.user {
-      background: rgba(212, 168, 67, 0.12);
-      border: 1px solid rgba(212, 168, 67, 0.2);
+      .msg.user {
+      background: rgba(212, 168, 67, 0.16);
+      border: 1px solid rgba(212, 168, 67, 0.3);
       align-self: flex-end;
+      color: #0c111a;
+      backdrop-filter: blur(12px);
     }
 
     .msg.bot {
-      background: var(--bg3);
-      border: 1px solid var(--border);
+      background: rgba(16, 24, 41, 0.94);
+      border: 1px solid rgba(255, 255, 255, 0.06);
       align-self: flex-start;
     }
 
@@ -258,8 +317,91 @@
 
     .chat-input-row {
       display: flex;
-      gap: 8px;
+      gap: 10px;
+      align-items: center;
     }
+
+    .chat-input-row input {
+      flex: 1;
+    }
+   
+    .chat-input-row .btn {
+      flex-shrink: 0;
+      min-width: 50px;
+      padding: 12px 16px;
+    }
+
+    .chat-welcome {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 280px;
+      text-align: center;
+      color: var(--text);
+      padding: 24px;
+    }
+
+    .chat-welcome.hidden {
+      display: none;
+    }
+
+    .chat-welcome-icon {
+      font-size: 52px;
+      margin-bottom: 16px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .chat-welcome h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--gold2);
+      letter-spacing: 0.01em;
+    }
+
+    .chat-welcome p {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 22px;
+      max-width: 240px;
+    }
+
+    .chat-features {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      width: 100%;
+      max-width: 260px;
+    }
+
+    .chat-feature-item {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px;
+      padding: 12px;
+      font-size: 12px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.18s ease;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .chat-feature-item:hover {
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      border-color: rgba(255,255,255,0.12);
+      transform: translateY(-2px);
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+
 
     /* ── INPUTS ───────────────────────────────────── */
     input[type="text"],
@@ -540,10 +682,11 @@
     padding: 10px;
 }
 
-#expenseChart {
-  width: 100% !important;
-  max-height: 350px;
-  margin: 20px 0;
+#expenseChart{
+    max-width:500px;
+    max-height:350px;
+    margin:20px auto;
+    display:block;
 }
 
 .ai-insights {
@@ -731,9 +874,7 @@
     grid-template-columns: 1fr;
   }
 
-  .dash-grid {
-    grid-template-columns: 1fr;
-  }
+
 
   .bottom-grid {
     grid-template-columns: 1fr;
@@ -751,6 +892,226 @@
     font-size: 18px;
   }
 }
+/* ===== GOAL TRACKER STYLING FIX ===== */
+
+#goalTracker {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 16px;
+  border-radius: 12px;
+  color: #eef0f5;
+  margin-top: 20px;
+}
+
+/* Inputs */
+#goalTracker input {
+  width: 100%;
+  margin: 8px 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.04);
+  color: #fff;
+  outline: none;
+}
+
+#goalTracker input::placeholder {
+  color: rgba(255,255,255,0.4);
+}
+
+/* Button */
+#goalTracker button {
+  margin-top: 10px;
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #d4a843, #14c8bf);
+  color: #0b1220;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Goal Card */
+.goal-box {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  padding: 12px;
+  margin-top: 12px;
+  border-radius: 10px;
+}
+
+/* Progress Bar Container */
+.goal-box .bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 50px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+
+/* Fill */
+.goal-box .fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2ecc8a, #14c8bf);
+  border-radius: 50px;
+  transition: width 0.4s ease;
+}
+
+/* Input inside goal */
+.goal-box input {
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: white;
+}
+.goal-card{
+margin-top:20px;
+padding:20px;
+border-radius:14px;
+background:rgba(255,255,255,0.03);
+border:1px solid rgba(255,255,255,0.08);
+}
+
+.goal-top{
+display:flex;
+justify-content:space-between;
+align-items:center;
+flex-wrap:wrap;
+gap:15px;
+}
+
+.goal-top h3{
+font-size:30px;
+margin:0;
+}
+
+.goal-amount{
+font-size:18px;
+color:#14c8bf;
+margin-top:10px;
+}
+
+.goal-progress{
+height:12px;
+background:#2d3748;
+border-radius:20px;
+overflow:hidden;
+margin:18px 0;
+}
+
+.goal-fill{
+height:100%;
+background:linear-gradient(
+90deg,
+#14c8bf,
+#2ecc8a
+);
+}
+
+.goal-percent{
+background:rgba(20,200,191,.15);
+color:#14c8bf;
+padding:8px 16px;
+border-radius:30px;
+font-weight:700;
+}
+
+.goal-save-row{
+display:flex;
+gap:12px;
+margin-top:15px;
+align-items:center;
+}
+
+.goal-save-row input{
+width:300px !important;
+min-width:300px !important;
+height:44px;
+padding:12px;
+background:rgba(255,255,255,0.05);
+border:1px solid rgba(255,255,255,0.1);
+color:#eef0f5;
+border-radius:8px;
+}
+
+.save-btn{
+width:220px;
+background:linear-gradient(
+135deg,
+#d4a843,
+#f0cc6e
+);
+border:none;
+border-radius:10px;
+font-weight:700;
+cursor:pointer;
+}
+
+.delete-btn{
+background:transparent;
+border:1px solid #ff4d4f;
+color:#ff4d4f;
+padding:8px 12px;
+border-radius:8px;
+cursor:
+pointer;
+}
+#expenseForm select,
+#expenseForm input[type="date"],
+#expenseForm input[type="number"],
+#expenseForm input[type="text"]{
+    background: rgba(255,255,255,0.05);
+    color: #e2e8f0;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+#expenseForm select:focus,
+#expenseForm input:focus{
+    border-color:#d4a843;
+    box-shadow:0 0 10px rgba(212,168,67,.3);
+}
+
+#expenseForm select option{
+    background:#0d1320;
+    color:#e2e8f0;
+}
+.goal-input{
+    flex:1;
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.1);
+    color:#eef0f5;
+}
+
+.goal-input::placeholder{
+    color:#5a6a82;
+}
+.chart-wrap{
+    width:100%;
+    max-width:320px;
+    height:220px;
+    margin:0 auto;
+    position:relative;
+    overflow:hidden;
+}
+
+#portfolioChart{
+    width:100% !important;
+    height:220px !important;
+}
+
+.chart-wrap{
+    width:100%;
+    height:280px;
+    max-height:280px;
+    overflow:hidden;
+    position:relative;
+}
+
+
   </style>
 </head>
 
@@ -805,23 +1166,29 @@
       <!-- DASH GRID -->
       <div class="dash-grid">
 
-        <!-- AI CHAT PANEL -->
+            <!-- AI CHAT PANEL -->
         <div class="card">
           <div class="card-title">🤖 AI Financial Advisor</div>
-          <div class="chat-messages" id="dashChat"></div>
+          <div class="chat-messages" id="dashChat">
+            <div class="chat-welcome" id="chatWelcome">
+              <div class="chat-welcome-icon">💬</div>
+              <h3>Hi! I'm your AI Advisor</h3>
+              <p>Ask me anything about investments, taxes, SIPs, portfolio strategy, and more.</p>
+              <div class="chat-features">
+                <div class="chat-feature-item" onclick="dashQuick('Portfolio advice')">📊 Portfolio</div>
+                <div class="chat-feature-item" onclick="dashQuick('Tax planning tips')">💸 Taxes</div>
+                <div class="chat-feature-item" onclick="dashQuick('SIP strategy')">📈 SIP Plan</div>
+                <div class="chat-feature-item" onclick="dashQuick('Risk assessment')">⚠️ Risk</div>
+              </div>
+            </div>
+          </div>
           <div class="chat-input-row">
             <input type="text" id="dashMsg" placeholder="Ask anything about your finances…"
               onkeypress="if(event.key==='Enter') dashSend()">
             <button class="btn btn-gold" onclick="dashSend()" id="dashBtn">➤</button>
           </div>
-          <div class="quick-btns">
-            <button class="btn btn-ghost" onclick="dashQuick('Should I rebalance my portfolio now?')">📊
-              Rebalance</button>
-            <button class="btn btn-ghost" onclick="dashQuick('Give me tax saving tips for FY 2024-25')">💸 Tax
-              Tips</button>
-            <button class="btn btn-ghost" onclick="dashQuick('Best SIP strategy for ₹10,000/month?')">📈 SIP</button>
-          </div>
         </div>
+
 
         <!-- RIGHT SIDE -->
         <div style="display:flex;flex-direction:column;gap:14px">
@@ -847,8 +1214,10 @@
               <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83M22 12A10 10 0 0 0 12 2v10z"/></svg>
               <span>Portfolio Allocation</span>
             </div>
-            <div style="position: relative; height: 160px; margin-bottom: 15px; display: flex; justify-content: center;">
-              <canvas id="portfolioChart"></canvas>
+            <div style="position:relative;height:220px;width:100%;max-width:320px;margin:0 auto;">
+              <div class="chart-wrap">
+    <canvas id="portfolioChart"></canvas>
+</div>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px; margin-top: 10px;">
               <div style="display:flex; align-items:center; gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:#d4a843"></span> Equity (40%)</div>
@@ -908,8 +1277,20 @@
     <!-- ── AI CHAT PAGE ─────────────── -->
     <div id="chat" class="page">
       <div class="page-title">🤖 AI <span>Chat</span></div>
-      <div class="card" style="flex:1">
-        <div class="chat-messages" id="chatMessages" style="height:420px"></div>
+      <div class="card" style="max-width:900px;margin:0 auto;flex:1;width:100%">
+        <div class="chat-messages" id="chatMessages" style="height:420px">
+          <div class="chat-welcome" id="chatPageWelcome">
+            <div class="chat-welcome-icon">🎯</div>
+            <h3>Financial Guidance at Your Fingertips</h3>
+            <p>Ask questions about investments, tax planning, portfolio strategy, SIPs, risk assessment, or any financial topic.</p>
+            <div class="chat-features">
+              <div class="chat-feature-item" onclick="chatQuick('How should I diversify my portfolio?')">📊 Portfolio</div>
+              <div class="chat-feature-item" onclick="chatQuick('Best tax saving strategies for 2024-25')">💸 Tax Strategy</div>
+              <div class="chat-feature-item" onclick="chatQuick('Should I invest in mutual funds or stocks?')">📈 Investments</div>
+              <div class="chat-feature-item" onclick="chatQuick('How much emergency fund do I need?')">🛡️ Emergency Fund</div>
+            </div>
+          </div>
+        </div>
         <div class="chat-input-row">
           <input type="text" id="chatInput" placeholder="Ask anything financial…"
             onkeypress="if(event.key==='Enter') chatSend()">
@@ -944,43 +1325,42 @@
       </div>
     </div>
 
-    <!-- ── SIP CALCULATOR ─────────────── -->
-    <div id="sip" class="page">
-      <div class="page-title">SIP <span>Calculator</span></div>
-      <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; align-items: start; max-width: 900px;">
-        <div class="card">
-          <div class="card-title">SIP Projection</div>
-          <label>Monthly Investment (₹)</label>
-          <input type="number" id="sip_monthly" placeholder="e.g. 10000">
-          <label>Annual Return Rate (%)</label>
-          <input type="number" id="sip_rate" placeholder="e.g. 12">
-          <label>Investment Period (Years)</label>
-          <input type="number" id="sip_years" placeholder="e.g. 10">
-          <button class="btn btn-gold" style="margin-top:16px;width:100%" onclick="calcSIP()" id="sipBtn">Calculate</button>
-          <div id="sipResult" class="result-box"></div>
-        </div>
-        <div class="card" style="min-height: 380px;">
-          <div class="card-title">Wealth Growth Curve</div>
-          <div style="position: relative; height: 320px;">
-            <canvas id="sipChart"></canvas>
-          </div>
-        </div>
-=======
-      <div class="page-title">📈 SIP <span>Calculator</span></div>
-      <div class="card" style="max-width:480px">
-        <div class="card-title">SIP Projection</div>
-        <label>Monthly Investment (₹)</label>
-        <input type="number" id="sip_monthly" placeholder="e.g. 10000">
-        <label>Annual Return Rate (%)</label>
-        <input type="number" id="sip_rate" placeholder="e.g. 12">
-        <label>Investment Period (Years)</label>
-        <input type="number" id="sip_years" placeholder="e.g. 10">
-        <button class="btn btn-gold" style="margin-top:16px;width:100%" onclick="calcSIP()"
-          id="sipBtn">Calculate</button>
-        <div id="sipResult" class="result-box"></div>
->>>>>>> upstream/main
+<!-- ── SIP CALCULATOR ─────────────── -->
+<div id="sip" class="page">
+  <div class="page-title">📈 SIP <span>Calculator</span></div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; align-items: start; max-width: 900px;">
+
+    <!-- INPUT CARD -->
+    <div class="card">
+      <div class="card-title">SIP Projection</div>
+
+      <label>Monthly Investment (₹)</label>
+      <input type="number" id="sip_monthly" placeholder="e.g. 10000">
+
+      <label>Annual Return Rate (%)</label>
+      <input type="number" id="sip_rate" placeholder="e.g. 12">
+
+      <label>Investment Period (Years)</label>
+      <input type="number" id="sip_years" placeholder="e.g. 10">
+
+      <button class="btn btn-gold" style="margin-top:16px;width:100%" onclick="calcSIP()" id="sipBtn">
+        Calculate
+      </button>
+
+      <div id="sipResult" class="result-box"></div>
+    </div>
+
+    <!-- CHART -->
+    <div class="card" style="min-height: 380px;">
+      <div class="card-title">Wealth Growth Curve</div>
+      <div style="position: relative; height: 320px;">
+        <canvas id="sipChart"></canvas>
       </div>
     </div>
+
+  </div>
+</div>
 
     <!-- ── STOCK CHECK ─────────────── -->
     <div id="stock" class="page">
@@ -1048,18 +1428,55 @@
       </div>
     </div>
 
-    <!---------- EXPENSE TRACK------------------->
-     <div id="expense" class="page">
-      <div class="page-title">💲 Expense Track and Insights</div>
-      <form id="expenseForm">
-        <select id="category" required>
-          <option value="">Select Category</option>
-          <option value="Food">Food</option>
-          <option value="Rent">Rent</option>
-          <option value="Travel">Travel</option>
-          <option value="Shopping">Shopping</option>
-          <option value="Other">Other</option>
-        </select>
+<div id="expense" class="page">
+
+<div class="page-title">💲 Expense Track and Insights</div>
+
+<div class="card" id="goalTracker">
+
+<h2 style="margin-bottom:15px;color:#d4a843;">
+🎯 Financial Goal Tracker
+</h2>
+
+<div style="display:flex;gap:15px;flex-wrap:wrap;">
+
+<input
+type="text"
+id="goalName"
+placeholder="Goal name (e.g. Phone)"
+class="goal-input"
+>
+
+<input
+type="number"
+id="goalTarget"
+placeholder="Target amount (₹)"
+class="goal-input"
+>
+<button
+onclick="addGoal()"
+class="btn btn-gold"
+style="width:220px;"
+>
++ Add Goal
+</button>
+
+</div>
+
+<div id="goalContainer"></div>
+
+</div>
+<!-- FINANCIAL GOAL TRACKER -->
+
+<form id="expenseForm">
+    <select id="category" required>
+        <option value="">Select Category</option>
+        <option value="Food">Food</option>
+        <option value="Rent">Rent</option>
+        <option value="Travel">Travel</option>
+        <option value="Shopping">Shopping</option>
+        <option value="Other">Other</option>
+    </select>
         <input type="number" id="amount" placeholder="Amount (₹)" required>
         <input type="date" id="date" required>
         <button type="submit">Add Expense</button>
@@ -1086,19 +1503,16 @@
 
 
       <div class="glass-container">
-        <h2>AI-Money Mentor's Insights</h2>
-        <br>
-        <div id="insights">
-          <div class="gold-loader"></div>
-        </div>
-      </div>
-     </div>
-    
+    ...
+</div>
+
+<div style="margin-top:20px;">
     <canvas id="expenseChart"></canvas>
+</div>
 
+</div>
 
-
-  </div><!-- /main -->
+</div><!-- /main -->
     
   <!-- Loading charts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1128,7 +1542,7 @@
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false,
+          maintainAspectRatio: true,
           plugins: {
             legend: { display: false }
           },
@@ -1195,6 +1609,7 @@
     /* ══════════════════════════════════════════════
        DASHBOARD CHAT
     ══════════════════════════════════════════════ */
+
     function appendMsg(boxId, role, text) {
       const box = document.getElementById(boxId);
       const d = document.createElement('div');
@@ -1203,22 +1618,37 @@
       box.appendChild(d);
       box.scrollTop = box.scrollHeight;
     }
+async function dashSend() {
+  const inp = document.getElementById('dashMsg');
+  const msg = inp.value.trim();
+  if (!msg) return;
 
-    async function dashSend() {
-      const inp = document.getElementById('dashMsg');
-      const msg = inp.value.trim();
-      if (!msg) return;
-      inp.value = '';
-      appendMsg('dashChat', 'user', msg);
-      setLoading('dashBtn', true);
-      try {
-        const data = await apiFetch('/chat', { message: msg });
-        appendMsg('dashChat', 'bot', data.reply || data.error || 'No response');
-      } catch (e) {
-        appendMsg('dashChat', 'bot', '⚠ Could not reach server. Is Flask running?');
-      }
-      setLoading('dashBtn', false);
+  inp.value = '';
+  appendMsg('dashChat', 'user', msg);
+
+  setLoading('dashBtn', true);
+
+  try {
+    const data = await apiFetch('/chat', { message: msg });
+
+    if (data.reply) {
+      appendMsg('dashChat', 'bot', data.reply);
+    } else if (data.error) {
+      appendMsg(
+        'dashChat',
+        'bot',
+        "⚠ " + (data.error.message || "AI error occurred")
+      );
+    } else {
+      appendMsg('dashChat', 'bot', "⚠ No response from server");
     }
+
+  } catch (e) {
+    appendMsg('dashChat', 'bot', '⚠ Could not reach server. Is Flask running?');
+  }
+
+  setLoading('dashBtn', false);
+}
 
     function dashQuick(text) {
       document.getElementById('dashMsg').value = text;
@@ -1327,7 +1757,7 @@
             options: {
               indexAxis: 'y',
               responsive: true,
-              maintainAspectRatio: false,
+              maintainAspectRatio: true,
               plugins: {
                 legend: { display: false }
               },
@@ -1432,7 +1862,7 @@
             },
             options: {
               responsive: true,
-              maintainAspectRatio: false,
+              maintainAspectRatio: true,
               plugins: {
                 legend: {
                   labels: { color: '#eef0f5', font: { family: 'Instrument Sans' } }
@@ -1522,7 +1952,7 @@
             },
             options: {
               responsive: true,
-              maintainAspectRatio: false,
+              maintainAspectRatio: true,
               plugins: {
                 legend: { display: false }
               },
@@ -1739,15 +2169,27 @@
 /* ══════════════════════════════════════════════
           EXPENSE TRACKER
 ══════════════════════════════════════════════ */
-
 document.getElementById("expenseForm").addEventListener("submit", async function (e) {
     e.preventDefault();
 
+    const category = document.getElementById("category").value;
+    const amount = document.getElementById("amount").value;
+    const date = document.getElementById("date").value;
+
+    console.log(category, amount, date);
+
+    if (!category || !amount || !date) {
+        alert("Please fill all fields");
+        return;
+    }
+
     const expense = {
-        category: document.getElementById("category").value,
-        amount: parseFloat(document.getElementById("amount").value),
-        date: document.getElementById("date").value
+        category: category,
+        amount: parseFloat(amount),
+        date: date
     };
+
+console.log("Sending Expense:", expense);
 
     try {
         const response = await fetch("/add_expense", {
@@ -1758,7 +2200,8 @@ document.getElementById("expenseForm").addEventListener("submit", async function
             body: JSON.stringify(expense)
         });
 
-        const data = await response.json();
+       const data = await response.json();
+console.log(data);
 
         if (data.status === "success") {
             document.getElementById("expenseForm").reset();
@@ -1783,8 +2226,16 @@ async function loadExpenses() {
               </div>
               `;
 
-        const insightRes = await fetch("/insights");
-        const insightData = await insightRes.json();
+       let insightData = {
+    insights: "No insights available"
+};
+
+try{
+    const insightRes = await fetch("/insights");
+    insightData = await insightRes.json();
+}catch(err){
+    console.log("Insights failed", err);
+}
 
         /* ---------- TOTAL CARD ---------- */
 
@@ -1929,6 +2380,159 @@ if (chartCanvas) {
 }
 
 loadExpenses();
+let goals = [];
+
+function addGoal(){
+
+const name =
+document.getElementById("goalName").value.trim();
+
+const target =
+parseFloat(
+document.getElementById("goalTarget").value
+);
+
+if(!name || !target){
+alert("Enter valid goal details");
+return;
+}
+
+goals.push({
+name:name,
+target:target,
+saved:0
+});
+
+document.getElementById("goalName").value="";
+document.getElementById("goalTarget").value="";
+
+renderGoals();
+}
+
+function addSavings(index){
+
+const amount =
+parseFloat(
+document.getElementById(
+`save-${index}`
+).value
+);
+
+if(!amount || amount<=0){
+alert("Enter valid amount");
+return;
+}
+
+goals[index].saved += amount;
+
+renderGoals();
+}
+
+function deleteGoal(index){
+
+goals.splice(index,1);
+
+renderGoals();
+}
+
+function renderGoals(){
+
+const container =
+document.getElementById(
+"goalContainer"
+);
+
+container.innerHTML="";
+
+goals.forEach((goal,index)=>{
+
+const percent =
+Math.min(
+(goal.saved/goal.target)*100,
+100
+);
+
+const remaining =
+Math.max(
+goal.target-goal.saved,
+0
+);
+
+container.innerHTML += `
+
+<div class="goal-card">
+
+<div class="goal-top">
+
+<div>
+
+<h3>${goal.name}</h3>
+
+<div class="goal-amount">
+₹${goal.saved.toLocaleString()}
+/
+₹${goal.target.toLocaleString()}
+</div>
+
+<div style="margin-top:6px;color:#94a3b8;">
+Remaining:
+₹${remaining.toLocaleString()}
+</div>
+
+</div>
+
+<div style="
+display:flex;
+align-items:center;
+gap:10px;
+">
+
+<div class="goal-percent">
+${percent.toFixed(0)}%
+</div>
+
+<button
+class="delete-btn"
+onclick="deleteGoal(${index})"
+>
+🗑
+</button>
+
+</div>
+
+</div>
+
+<div class="goal-progress">
+
+<div
+class="goal-fill"
+style="width:${percent}%"
+></div>
+
+</div>
+
+<div class="goal-save-row">
+
+<input
+id="save-${index}"
+type="number"
+placeholder="Add savings amount (₹)"
+>
+
+<button
+class="save-btn"
+onclick="addSavings(${index})"
+>
+Add Savings
+</button>
+
+</div>
+
+</div>
+`;
+});
+
+}
   </script>
 </body>
 
