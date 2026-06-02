@@ -102,10 +102,16 @@ def chat():
             ]
         )
 
-        return jsonify({"reply": res.choices[0].message.content})
+        return jsonify({
+            "reply": res.choices[0].message.content
+        })
 
     except Exception as e:
-        return jsonify({"reply": f"Error: {str(e)}"})
+    	app.logger.error(f"Groq API Error: {str(e)}")
+
+    	return jsonify({
+        	"reply": "Unable to generate a response at the moment. Please try again later."
+    	}), 500
 
 
 # ---------------- 💸 SIP ----------------
