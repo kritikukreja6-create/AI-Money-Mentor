@@ -2510,15 +2510,48 @@ async function dashSend() {
                               cap = "N/A";
                             }
 
+                            // AI Sentiment Badge color
+                            let badgeClass = "badge-gold";
+                            if (data.sentiment === "Bullish") badgeClass = "badge-green";
+                            else if (data.sentiment === "Bearish") badgeClass = "badge-red";
+
+                            let newsHtml = "";
+                            if (data.news && data.news.length > 0) {
+                              newsHtml = `
+                                <div style="margin-top: 12px; border-top: 1px solid var(--border); padding-top: 10px;">
+                                  <span style="font-size: 10px; color: var(--muted); text-transform: uppercase; font-weight: 600;">Recent News Headlines</span>
+                                  <ul style="list-style: none; margin-top: 6px; display: flex; flex-direction: column; gap: 8px;">
+                                    ${data.news.map(n => `
+                                      <li style="font-size: 12px; line-height: 1.4; text-align: left;">
+                                        <a href="${n.link}" target="_blank" style="color: var(--teal); text-decoration: none; font-weight: 500;">${n.title}</a>
+                                        <span style="font-size: 10px; color: var(--muted); display: block; margin-top: 2px;">via ${n.publisher}</span>
+                                      </li>
+                                    `).join("")}
+                                  </ul>
+                                </div>
+                              `;
+                            }
+
                             let html = `
             <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">${data.symbol} — Last Price</div>
             <div class="result-big">₹${fmtNum(data.price)}</div>
+            
+            <div style="margin-top:14px; padding: 14px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; text-align: left;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                <span style="font-size: 11px; color: var(--muted); text-transform: uppercase; font-weight: 600;">AI Market Outlook</span>
+                <span class="badge ${badgeClass}">${data.sentiment}</span>
+              </div>
+              <p style="font-size:13px; line-height:1.6; color: var(--text);">${data.analysis}</p>
+            </div>
+
             <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 6px; font-size: 12px; border-top: 1px solid var(--border); padding-top: 10px;">
               <div style="display:flex; justify-content:space-between"><span>52W High</span><strong>₹${metrics.high_52w !== "N/A" && metrics.high_52w !== null ? fmtNum(metrics.high_52w) : "N/A"}</strong></div>
               <div style="display:flex; justify-content:space-between"><span>52W Low</span><strong>₹${metrics.low_52w !== "N/A" && metrics.low_52w !== null ? fmtNum(metrics.low_52w) : "N/A"}</strong></div>
               <div style="display:flex; justify-content:space-between"><span>Market Cap</span><strong>${cap}</strong></div>
               <div style="display:flex; justify-content:space-between"><span>P/E Ratio</span><strong>${pe}</strong></div>
             </div>
+            
+            ${newsHtml}
           `;
                             showResult('stockResult', html);
 
