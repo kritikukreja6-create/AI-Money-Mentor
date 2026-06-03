@@ -137,7 +137,7 @@ def sip():
         return jsonify({"future_value": result})
 
     except Exception as e:
-        return jsonify({"error": str(e)})
+        return jsonify({"error": str(e)}), 400
 
 
 # ---------------- 📊 STOCK ----------------
@@ -149,7 +149,7 @@ def portfolio():
         return jsonify(result)
 
     except Exception as e:
-        return jsonify({"error": str(e)})
+        return jsonify({"error": str(e)}), 400
     
 # ---------------- 💸 TAX ----------------
 @app.route("/tax", methods=["POST"])
@@ -159,7 +159,7 @@ def tax():
         return jsonify({"tax": calculate_tax(income)})
 
     except Exception as e:
-        return jsonify({"error": str(e)})
+        return jsonify({"error": str(e)}), 400
 
 
 # ---------------- 📄 PDF ----------------
@@ -171,7 +171,7 @@ def upload():
         return jsonify({"data": result})
 
     except Exception as e:
-        return jsonify({"error": str(e)})
+        return jsonify({"error": str(e)}), 400
 
 
 # ---------------- 🧠 MULTI AGENT ----------------
@@ -183,7 +183,7 @@ def run_agent_route():
         return jsonify({"response": response})
 
     except Exception as e:
-        return jsonify({"error": str(e)})
+        return jsonify({"error": str(e)}), 400
 
 
 # ---------------- 💰 MONEY SCORE ----------------
@@ -216,7 +216,7 @@ def money_score():
         })
 
     except Exception as e:
-        return jsonify({"error": str(e)})
+        return jsonify({"error": str(e)}), 400
 
 
 # Expense Tracker Features
