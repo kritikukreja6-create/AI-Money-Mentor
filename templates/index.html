@@ -27,17 +27,43 @@
       --glow: rgba(212, 168, 67, 0.18);
     }
 
-    
-    *,
-    *::before,
-    *::after {
+    body.light-theme {
+      --bg : beige;
+      --bg2: aliceblue;
+      --bg3: #e8edf3;
+      --text: #20406d;
+      --muted: #6b7280;
+      --border: rgba(0, 0, 0, 0.08);
+
+      .card{
+        background:ivory;
+      }
+      .stat-card{
+        background: ivory;
+      }
+      .sidebar{
+        background:beige;
+      }
+      .chat-textarea {
+        background:rgb(245, 245, 210);
+      }
+      .msg.bot {
+        background:rgb(245, 245, 210);
+      }
+      input,
+      select {
+        background: rgb(244,244,208);
+      }
+    }
+
+    * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
 
     body {
-      font-family: 'Instrument Sans', sans-serif;
+      font-family: 'Instrument Sans', sans-serif;  /* change */
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
@@ -112,8 +138,7 @@
       border-radius: 8px;
       cursor: pointer;
       color: var(--muted);
-      font-size: 13px;
-      font-weight: 500;
+      font-size: 18px;
       transition: all 0.18s ease;
       user-select: none;
       font-family: 'JetBrains Mono', monospace;
@@ -130,9 +155,8 @@
     }
 
     .nav-item .icon {
-      font-size: 15px;
-      width: 20px;
-      text-align: center;
+      font-size: 20px;
+      width: 24px;
     }
 
     /* ── MAIN ─────────────────────────────────────── */
@@ -291,7 +315,7 @@
       font-weight: 700;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: var(--muted);
+      color: var(--muted); 
       margin-bottom: 16px;
     }
 
@@ -303,8 +327,8 @@
     }
 
     .stat-card {
-      background: rgba(15, 22, 38, 0.96);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(15, 22, 38, 0.96); 
+      border: 1px solid var(--border);
       border-radius: 18px;
       padding: 20px;
       position: relative;
@@ -319,7 +343,8 @@
       left: 0;
       right: 0;
       height: 3px;
-      background: linear-gradient(90deg, rgba(212, 168, 67, 0.9), rgba(20, 200, 191, 0.9));
+      background: linear-gradient(90deg, var(--gold), var(--teal)); 
+      
     }
 
     .stat-label {
@@ -331,15 +356,68 @@
     }
 
     .stat-val {
-      font-family: 'Syne', sans-serif;
-      font-size: 26px;
+      font-family:'Times New Roman', Times, serif;
+      font-size: 24px;
       font-weight: 800;
       margin: 6px 0 4px;
     }
 
     .stat-sub {
       font-size: 11px;
-      color: var(--green);
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .holdings-table th:first-child {
+      text-align: left;
+    }
+
+    .holdings-table td {
+      padding: 12px;
+      text-align: right;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .holdings-table td:first-child {
+      text-align: left;
+      font-weight: 600;
+    }
+
+    /* Forms */
+    input,
+    select {
+      width: 100%;
+      padding: 10px 14px;
+      background: rgba(17, 26, 46, 0.9); 
+      
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--gold);
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+      font-family: 'Instrument Sans', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      transition: all 0.18s ease;
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, #f3d687 0%, #d4a843 60%);
+      color: #0a0e18;
     }
 
     .stat-sub.neg {
@@ -396,7 +474,8 @@
 
     .msg.bot {
       background: rgba(16, 24, 41, 0.94);
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      
+      border: 1px solid var(--border);
       align-self: flex-start;
     }
 
@@ -423,6 +502,12 @@
       flex-shrink: 0;
       min-width: 50px;
       padding: 12px 16px;
+      background: rgba(17, 26, 46, 0.9);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 15px;
     }
 
     .chat-welcome {
@@ -483,6 +568,16 @@
       text-align: center;
       font-weight: 500;
     }
+
+
+  </style>
+</head>
+
+<body>
+
+  <div class="sidebar">
+    <div class="logo">₹ Money Mentor</div>
+    <button class="btn btn-ghost" id="themeToggle" onclick="toggleTheme()" style="margin-bottom: 15px;">☀️ Light Mode</button>
 
     .chat-feature-item:hover {
       background: rgba(255, 255, 255, 0.08);
