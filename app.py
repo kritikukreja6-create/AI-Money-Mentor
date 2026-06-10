@@ -551,8 +551,8 @@ def expense_insights():
 def get_net_worth():
     assets = Asset.query.order_by(Asset.id).all()
     liabilities = Liability.query.order_by(Liability.id).all()
-    assets_data = [a.to_dict(i) for i, a in enumerate(assets)]
-    liabilities_data = [l.to_dict(i) for i, l in enumerate(liabilities)]
+    assets_data = [a.to_dict() for a in assets]
+    liabilities_data = [l.to_dict() for l in liabilities]
     total_assets = sum(item['amount'] for item in assets_data)
     total_liabilities = sum(item['amount'] for item in liabilities_data)
     return jsonify({
