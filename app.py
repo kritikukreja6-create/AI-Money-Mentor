@@ -34,19 +34,7 @@ from utils.validation import ValidationError, validate_string, validate_float, v
 app = Flask(__name__)
 
 # ---------------- INIT DATABASE ----------------
-from models import (
-    db,
-    Expense,
-    Asset,
-    Liability,
-    BudgetLimit,
-    BudgetAlert,
-    PriceAlert,
-    FinancialGoal,
-    FinancialGoalMilestone,
-)
-
-
+from models import db, Expense, Asset, Liability, BudgetLimit, BudgetAlert, PriceAlert, PriceAlertEvent, FinancialGoal, RecurringExpense
 
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///money_mentor.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -311,11 +299,11 @@ def create_alert():
         data = request.json
         if not data or "symbol" not in data or "target_price" not in data:
             return jsonify({"error": "Missing required fields"}), 400
-        
+
         symbol = data["symbol"].strip().upper()
         target_price = float(data["target_price"])
         condition = data.get("condition", "above").strip().lower()
-        
+
         if condition not in ("above", "below"):
             return jsonify({"error": "Invalid condition value"}), 400
             
@@ -327,6 +315,51 @@ def create_alert():
         db.session.commit()
         return jsonify(alert.to_dict()), 201
     except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@app.route("/api/alerts/history", methods=["GET"])
+def alerts_history():
+    """
+    Returns latest N alert trigger events.
+    Query params:
+      - limit (default 10, max 100)
+    """
+    try:
+        limit = request.args.get("limit", default=10, type=int)
+        if limit < 1:
+            limit = 10
+        if limit > 100:
+            limit = 100
+
+        events = (
+            PriceAlertEvent.query.order_by(PriceAlertEvent.triggered_at.desc())
+            .limit(limit)
+            .all()
+        )
+        return jsonify([e.to_dict() for e in events])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@app.route("/api/alerts/reset", methods=["POST"])
+@app.route("/api/alerts//reset", methods=["POST"])  # handles legacy typo with double slash
+def alerts_reset():
+    try:
+        with app.app_context():
+            PriceAlert.query.update(
+                {
+                    "is_triggered": False,
+                    "last_triggered_at": None,
+                    "last_check_error": None,
+                }
+            )
+            # Clear history events
+            PriceAlertEvent.query.delete()
+            db.session.commit()
+        return jsonify({"status": "success"})
+    except Exception as e:
+        db.session.rollback()
         return jsonify({"error": str(e)}), 400
 
 @app.route("/api/alerts/<int:alert_id>", methods=["DELETE"])
@@ -681,6 +714,105 @@ def expense_insights():
         })
     result = insights(client, expense_data)
     return jsonify(result)
+
+
+# ---------------- RECURRING EXPENSES ----------------
+def _validate_frequency(freq: str):
+    freq = (freq or "").strip().lower()
+    if freq not in ("monthly", "weekly", "yearly"):
+        raise ValidationError("frequency must be one of: monthly, weekly, yearly")
+    return freq
+
+
+def _get_period_key(frequency: str, d):
+    if frequency == "monthly":
+        return d.strftime("%Y-%m")
+    if frequency == "weekly":
+        iso_year, iso_week, _ = d.isocalendar()
+        return f"{iso_year}-W{iso_week:02d}"
+    # yearly
+    return d.strftime("%Y")
+
+
+@app.route("/recurring-expense", methods=["POST"])
+def create_recurring_expense():
+    """
+    Create a recurring expense template.
+    """
+    try:
+        data = request.json or {}
+        if not isinstance(data, dict):
+            raise ValidationError("Request body must be a JSON object")
+
+        category = validate_string(data.get("category"), "category")
+        amount = validate_float(data.get("amount"), "amount", min_val=0.01)
+        start_date = validate_string(data.get("start_date"), "start_date")  # YYYY-MM-DD
+        frequency = _validate_frequency(data.get("frequency"))
+
+        active = data.get("active", True)
+        if not isinstance(active, bool):
+            raise ValidationError("active must be a boolean")
+
+        end_date = data.get("end_date", None)
+        if end_date is not None:
+            end_date = validate_string(end_date, "end_date")  # YYYY-MM-DD
+
+        # Validate date format (YYYY-MM-DD)
+        import datetime
+        try:
+            start_dt = datetime.datetime.strptime(start_date, "%Y-%m-%d").date()
+        except Exception:
+            raise ValidationError("start_date must be in YYYY-MM-DD format")
+
+        if end_date:
+            try:
+                end_dt = datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
+            except Exception:
+                raise ValidationError("end_date must be in YYYY-MM-DD format")
+            if end_dt < start_dt:
+                raise ValidationError("end_date cannot be before start_date")
+
+        rexp = RecurringExpense(
+            category=category,
+            amount=amount,
+            start_date=start_date,
+            frequency=frequency,
+            active=active,
+            end_date=end_date,
+        )
+        db.session.add(rexp)
+        db.session.commit()
+        return jsonify(rexp.to_dict()), 201
+
+    except ValidationError as e:
+        raise e
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@app.route("/recurring-expense", methods=["GET"])
+def list_recurring_expenses():
+    try:
+        items = RecurringExpense.query.order_by(RecurringExpense.id.desc()).all()
+        return jsonify([i.to_dict() for i in items])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@app.route("/recurring-expense/<int:recurring_id>", methods=["DELETE"])
+def disable_recurring_expense(recurring_id):
+    """
+    Disable a recurring expense template.
+    """
+    try:
+        item = db.session.get(RecurringExpense, recurring_id)
+        if not item:
+            return jsonify({"error": "Recurring expense not found"}), 404
+        item.active = False
+        db.session.commit()
+        return jsonify({"status": "success", "id": recurring_id})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 # ---------------- NET WORTH TRACKER ----------------
 # Net Worth Tracker Features
@@ -1121,31 +1253,124 @@ def check_all_budgets_job():
             run_threshold_checks(limit.category, ym)
 
 def check_stock_alerts_job():
+    """
+    Poll stock prices for active alerts and persist:
+    - last_check_error diagnostics on the PriceAlert row
+    - PriceAlertEvent row on trigger, storing snapshot price + timestamp
+    """
     with app.app_context():
         alerts = PriceAlert.query.filter_by(is_triggered=False).all()
+
+        # Basic retry/backoff for flaky yfinance / network issues
+        max_retries = 3
+        base_delay_sec = 1.0
+
         for alert in alerts:
-            res = get_stock_price(alert.symbol)
-            if res and "price" in res and "error" not in res:
+            last_err = None
+            res = None
+
+            for attempt in range(max_retries):
+                try:
+                    res = get_stock_price(alert.symbol)
+                    # get_stock_price returns {"error": "..."} on failure
+                    if res and isinstance(res, dict) and "price" in res and "error" not in res:
+                        last_err = None
+                        break
+                    if res and isinstance(res, dict) and "error" in res:
+                        last_err = res.get("error")
+                    else:
+                        last_err = "Unexpected response from get_stock_price"
+                except Exception as e:
+                    last_err = str(e)
+
+                # backoff before next attempt
+                time_to_sleep = base_delay_sec * (2 ** attempt)
+                import time as _time
+                _time.sleep(time_to_sleep)
+
+            # Persist diagnostics even if not triggered
+            alert.last_check_error = last_err
+
+            if res and isinstance(res, dict) and "price" in res and "error" not in res:
                 current_price = res["price"]
                 triggered = False
                 if alert.condition == "above" and current_price >= alert.target_price:
                     triggered = True
                 elif alert.condition == "below" and current_price <= alert.target_price:
                     triggered = True
-                
+
                 if triggered:
+                    from datetime import datetime as _dt
                     alert.is_triggered = True
+                    alert.last_triggered_at = _dt.utcnow()
+
+                    event = PriceAlertEvent(
+                        alert_id=alert.id,
+                        triggered_at=alert.last_triggered_at,
+                        price=current_price,
+                        condition=alert.condition,
+                        symbol=alert.symbol,
+                    )
+                    db.session.add(event)
+
                     print(
                         f"\n[STOCK ALERT] Triggered for {alert.symbol}\n"
                         f"Condition: {alert.condition} {alert.target_price}\n"
                         f"Current Price: {current_price}\n",
                         file=sys.stderr
                     )
+
         db.session.commit()
+
+
+def check_all_recurring_expenses_job():
+    """
+    Daily recurring-expense scheduler:
+    - For each active RecurringExpense, generate an Expense occurrence for the current period
+      (monthly/weekly/yearly).
+    - Insert Expense row only once per period (duplicate guard using Expense.merchant_name).
+    """
+    with app.app_context():
+        import datetime
+
+        today = datetime.date.today()
+        active_items = RecurringExpense.query.filter_by(active=True).all()
+
+        for rexp in active_items:
+            start_dt = datetime.datetime.strptime(rexp.start_date, "%Y-%m-%d").date()
+            if today < start_dt:
+                continue
+
+            if rexp.end_date:
+                end_dt = datetime.datetime.strptime(rexp.end_date, "%Y-%m-%d").date()
+                if today > end_dt:
+                    continue
+
+            period_key = _get_period_key(rexp.frequency, today)
+            merchant_key = f"recurring_expense:{rexp.id}:{period_key}"
+
+            # duplicate guard (same template + same period)
+            exists = Expense.query.filter_by(merchant_name=merchant_key).first()
+            if exists:
+                continue
+
+            occ_date = today.strftime("%Y-%m-%d")
+            exp = Expense(
+                category=rexp.category,
+                amount=rexp.amount,
+                date=occ_date,
+                is_recurring=True,
+                merchant_name=merchant_key,
+            )
+            db.session.add(exp)
+
+        db.session.commit()
+
 
 if not app.debug or os.environ.get("WERKZEUG_RUN_MAIN") == "true":
     scheduler = BackgroundScheduler()
     scheduler.add_job(check_all_budgets_job, 'interval', days=1)
+    scheduler.add_job(check_all_recurring_expenses_job, 'interval', days=1)
     scheduler.add_job(check_stock_alerts_job, 'interval', minutes=10)
     scheduler.start()
 
